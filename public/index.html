@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>NodeJs  simple czat</title>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
+</head>
+<body>
+<div id="container">
+    <div id="header"><h1></h1></div>
+    <div id="wrapper">
+        <div id="content">
+            <p><strong>Messages in your room</strong></p>
+            <ul id="messages"> </ul>
+        </div>
+        <form action="">
+            <input id="nick" autocomplete="off" /><button id="connectButton">Connect</button>
+            <br />
+            <input id="m" autocomplete="off"  /><button disabled="true" id="sendMessageButton">Send</button>
+            <input id="createRoomName" autocomplete="off"  /><button  disabled="true" id="createRoomButton">CreateRoom</button>
+        </form>
+    </div>
+    <div id="navigation">
+        <div id="allRooms">
+            <p><strong>Rooms</strong></p>
+                <ul id="rooms">
+                </ul>
+        </div>
+        <div id="inRoom" style="visibility:hidden">
+            You are currently in room
+            <label id="currentRoomName"></label>
+            <button id="leaveRoomButton" text="Leave room">Leave</button>
+        </div>
+    </div>
+    <div id="extra">
+        <h2>Users online in your room </h2>
+
+        <ul id="usersInRoom">
+        </ul>
+    </div>
+    <div id="footer">
+            <h2> Users online in app </h2>
+            <ul id="allUsersInApp">
+            </ul>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+    var socket = io();
+    var nick;
+    var room;
+    var listeForRoomMessages= false;
+
+
+    var disableUI = function(){
+        console.log("disableUI");
+        document.getElementById('connectButton').disabled = true;
+        document.getElementById('createRoomButton').disabled = false;
+    };
+
+    var joinRoom = function(event){
+        console.log(event);
+
+    }
+    $('#rooms').on('click', '.joinRoom', function(event) {
+        room = event.target.textContent;
+        console.log(event.target.textContent);
+        var object ={
+            nick:nick,
+            room:room
+        };
+        socket.emit('join room', JSON.stringify(object));
+        $('#currentRoomName').html(room);
+         $('#rooms').css("visibility","hidden");
+        $("#inRoom").css("visibility", "visible");
+        document.getElementById('sendMessageButton').disabled = false;
+        listeForRoomMessages = true;
+
+    });
+
+    $('#sendMessageButton').click(function(){
+        socket.emit('chat message',room + '#' + nick+ ": " +  $('#m').val());
+        $('#m').val('');
+        disableUI();
+        return false;
+    });
+
+    $('#leaveRoomButton').click(function(){
+        var socketObj = {
+            nick:nick,
+            room:'room1'
+        };
+        socket.emit('leave room', JSON.stringify(socketObj));
+        room='';
+        $('#usersInRoom').empty();
+        $('#inRoom').hide();
+        $('#allRooms').show();
+
+    });
+
+    $( "#connectButton" ).click(function() {
+        socket.emit('user connection', $('#nick').val());
+        nick = $('#nick').val();
+        $('#nick').val(nick);
+        disableUI();
+        return false;
+    });
+
+    $('#createRoomButton').click(function(){
+
+        room = $('#createRoomName').val();
+        socket.emit('create room', room);
+    });
+
+    socket.on('chat message', function(msg){
+        $('#messages').append($('<li>').text(msg));
+    });
+
+    socket.on('rooms', function(msg){
+        $("#rooms").empty();
+        $('#allRooms').css("visibility", "visible");
+        $("#rooms").css("visibility", "visible");
+       // $('#allRooms').css("visibility", "visible");
+        console.log("pokoje przyszly");
+        console.log(msg);
+        for(var i =0;i<msg.length; i++ ) {
+            console.log("pokoj1" + i);
+            $('#rooms').append($('<button class="joinRoom">').text(msg[i]));
+        }
+    });
+
+    socket.on('room messages', function(msg){
+        if(listeForRoomMessages){
+            console.log("messages has come");
+            var responseObject = JSON.parse(msg);
+
+            $("#messages").empty();
+            for(var i =0;i<responseObject.roomMessages.length; i++ ){
+                $('#messages').append($('<li>').text(responseObject.roomMessages[i]));
+            }
+            console.log(responseObject.users);
+            $("#usersInRoom").empty();
+            for(var i =0;i<responseObject.users.length; i++ ){
+                $('#usersInRoom').append($('<li>').text(responseObject.users[i]));
+            }
+
+        }
+        listeForRoomMessages=false;
+    });
+
+    socket.on('user connection', function(msg){
+        $('#messages').append($('<li>').text("User was connected by nick name : "+ msg));
+    });
+    socket.on('users in room', function(msg){
+        $("#usersInRoom").empty();
+        for(var i =0;i<msg.length; i++ ){
+            $('#usersInRoom').append($('<li>').text(msg[i]));
+        }
+    });
+</script>
+</body>
+</html>
