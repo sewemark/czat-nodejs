@@ -6,8 +6,10 @@ var io = require('socket.io')(http);
 var  rooms = new Array();
 rooms.push('room1');
 rooms.push('room2');
+
 var usersInRooms = new Array();
 var messagesInRoom = new Array();
+var applicationUsers = new Array();
 usersInRooms['room1'] =  new Array();
 usersInRooms['room2'] =  new Array();
 
@@ -32,12 +34,10 @@ io.on('connection', function(socket){
         if(index >0){
           roomName = msg.substr(0,index);
         }
-        console.log("room joineddd");
-        console.log(roomName);
+
         socket.join(roomName);
         var mess = msg.substr(index + 1, msg.length);
-        console.log(msg);
-        console.log(mess);
+
         if(!messagesInRoom[roomName])
             messagesInRoom[roomName] =  new Array();
         messagesInRoom[roomName].push(mess);
@@ -45,6 +45,8 @@ io.on('connection', function(socket){
     });
 
     socket.on('user connection', function(msg){
+        applicationUsers.push(msg);
+        io.emit('application users', applicationUsers);
         io.emit('rooms', rooms);
     });
 
@@ -54,9 +56,7 @@ io.on('connection', function(socket){
         roomMessages.push("message2");
         var object = JSON.parse(msg);
         console.log("peron what to join room : " + object.nick);
-
         if(!usersInRooms[object.room]){
-
             usersInRooms[object.room] = new Array();
         }
         else{
@@ -64,20 +64,19 @@ io.on('connection', function(socket){
         }
         if(!messagesInRoom[object.room]){
             messagesInRoom[object.room]   =  new Array();
-
         }
-
         var responseObject = {
             roomMessages:messagesInRoom[object.room],
             users: usersInRooms[object.room]
         };
         socket.join(object.room);
+        io.sockets.in(object.room).emit('users in room', usersInRooms[object.room]);
         io.emit('room messages',JSON.stringify(responseObject));
     });
 
     socket.on('create room', function(msg){
         rooms.push(msg);
-        rooms.push()
+        io.emit('rooms', rooms);
      });
     socket.on('leave room', function(msg){
         var objectMsg = JSON.parse(msg);
@@ -88,18 +87,9 @@ io.on('connection', function(socket){
             usersInRooms[objectMsg.room].splice(index,  1);
         }
         io.emit('rooms', rooms);
-        console.log(objectMsg.room);
-        console.log('idzie zmiana userow');
-        var clients = io.sockets.adapter.rooms['room1'];
-        console.log(clients);
-        console.log(usersInRooms[objectMsg.room]);
-        socket.leave(objectMsg.room);
-        //socket.join(objectMsg.room);
-        //socket.broadcast.to('room1').emit(usersInRooms['room1']);
-          //io.sockets.emit('', usersInRooms[objectMsg.room]);
+         socket.leave(objectMsg.room);
          io.sockets.in(objectMsg.room).emit('users in room', usersInRooms[objectMsg.room]);
-        //    io.sockets.in(roomName).emit('users in room', usersInRooms[objectMsg.room]);
-        //io.sockets.in(roomName).emit('chat message', msg);
+
     });
 
 });

@@ -4,49 +4,67 @@
     <title>NodeJs  simple czat</title>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
     <link rel="stylesheet" type="text/css" href="./styles.css" />
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
 </head>
 <body>
-<div id="container">
-    <div id="header"><h1></h1></div>
-    <div id="wrapper">
-        <div id="content">
-            <p><strong>Messages in your room</strong></p>
-            <ul id="messages"> </ul>
-        </div>
+<div class="container">
+<div id="header" class="row"><h1 class="intro-text">NodeJs Czat application</h1></div>
+<div id="container" class="row">
+    <div id="wrapper" class="col-md-4">
         <form action="">
-            <input id="nick" autocomplete="off" /><button id="connectButton">Connect</button>
-            <br />
-            <input id="m" autocomplete="off"  /><button disabled="true" id="sendMessageButton">Send</button>
-            <input id="createRoomName" autocomplete="off"  /><button  disabled="true" id="createRoomButton">CreateRoom</button>
+            <div class="form-group">
+                <label for="nick">Name:</label>
+                <input id="nick" type="text" class="form-control" autocomplete="off" />
+            </div>
+           <button  class="btn btn-danger" id="connectButton">Connect</button>
+            <div class="form-group">
+                <label for="m">Message:</label>
+                <input id="m"  type="text" class="form-control" autocomplete="off" autocomplete="off"  />
+            </div>
+           <button class="btn btn-info" disabled="true" id="sendMessageButton">Send</button>
+            <div class="form-group">
+                <label for="createRoomName" >New room name: </label>
+                <input id="createRoomName" type="text" class="form-control" autocomplete="off"  />
+            </div>
+            <button  class="btn btn-success" disabled="true" id="createRoomButton">CreateRoom</button>
         </form>
     </div>
-    <div id="navigation">
-        <div id="allRooms">
-            <p><strong>Rooms</strong></p>
-                <ul id="rooms">
-                </ul>
+    <div id="navigation" class="col-md-4">
+        <div id="content">
+            <h4 > Messages in your room <span class="glyphicon glyphicon-th-list"></span></h4>
+            <ul id="messages"> </ul>
         </div>
-        <div id="inRoom" style="visibility:hidden">
+    </div>
+    <div id="extra" class="col-md-4">
+        <h4> Users online in your room <span class="glyphicon glyphicon-user"></span> </h4>
+        <ul id="usersInRoom">
+        </ul>
+        <div id="allRooms">
+            <span><strong>Rooms </strong><span  class="glyphicon glyphicon-log-in"></span></span>
+            <ul id="rooms">
+            </ul>
+        </div>
+        <div id="inRoom" style="visibility: hidden">
             You are currently in room
             <label id="currentRoomName"></label>
             <button id="leaveRoomButton" text="Leave room">Leave</button>
         </div>
     </div>
-    <div id="extra">
-        <h2>Users online in your room </h2>
-
-        <ul id="usersInRoom">
-        </ul>
-    </div>
-    <div id="footer">
-            <h2> Users online in app </h2>
-            <ul id="allUsersInApp">
-            </ul>
-        </div>
-    </div>
 </div>
-<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<div id="footer" class="row">
+        <h2 class="footer__text"> Users online in app <span class="glyphicon glyphicon-user"></span></h2>
+        <ul id="allUsersInApp">
+        </ul>
+</div>
+</div>
+
 <script>
     var socket = io();
     var nick;
@@ -75,6 +93,7 @@
         $('#currentRoomName').html(room);
          $('#rooms').css("visibility","hidden");
         $("#inRoom").css("visibility", "visible");
+        document.getElementById('createRoomButton').disabled = true;
         document.getElementById('sendMessageButton').disabled = false;
         listeForRoomMessages = true;
 
@@ -90,13 +109,16 @@
     $('#leaveRoomButton').click(function(){
         var socketObj = {
             nick:nick,
-            room:'room1'
+            room:room
         };
         socket.emit('leave room', JSON.stringify(socketObj));
         room='';
         $('#usersInRoom').empty();
-        $('#inRoom').hide();
-        $('#allRooms').show();
+        $('#allRooms').css("visibility","visible");
+        $('#rooms').css("visibility","visible");
+        $("#inRoom").css("visibility", "hidden");
+        document.getElementById('createRoomButton').disabled = false;
+        document.getElementById('sendMessageButton').disabled = true;
 
     });
 
@@ -122,12 +144,9 @@
         $("#rooms").empty();
         $('#allRooms').css("visibility", "visible");
         $("#rooms").css("visibility", "visible");
-       // $('#allRooms').css("visibility", "visible");
-        console.log("pokoje przyszly");
-        console.log(msg);
         for(var i =0;i<msg.length; i++ ) {
-            console.log("pokoj1" + i);
-            $('#rooms').append($('<button class="joinRoom">').text(msg[i]));
+            $('#rooms').append($('<button  class="btn btn-default joinRoom">').text(msg[i]));
+
         }
     });
 
@@ -154,11 +173,19 @@
         $('#messages').append($('<li>').text("User was connected by nick name : "+ msg));
     });
     socket.on('users in room', function(msg){
+        console.log("users in room emitted");
         $("#usersInRoom").empty();
         for(var i =0;i<msg.length; i++ ){
             $('#usersInRoom').append($('<li>').text(msg[i]));
         }
     });
+    socket.on('application users', function(msg){
+        $("#allUsersInApp").empty();
+        for(var i =0;i<msg.length; i++ ){
+            $('#allUsersInApp').append($('<li>').text(msg[i]));
+        }
+    })
 </script>
+
 </body>
 </html>
