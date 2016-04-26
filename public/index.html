@@ -15,9 +15,9 @@
 </head>
 <body>
 <div class="container">
-<div id="header" class="row"><h1 class="intro-text">NodeJs Czat application</h1></div>
+<div id="header" class="row" ><div id="headerContent" class="col-md-12 col-sm-12 col-xs-12"><h1 class="intro-text">NodeJs Czat application</h1></div></div>
 <div id="container" class="row">
-    <div id="wrapper" class="col-md-4">
+    <div id="wrapper" class="col-md-4 col-sm-12 col-xs-12">
         <form action="">
             <div class="form-group">
                 <label for="nick">Name:</label>
@@ -36,13 +36,13 @@
             <button  class="btn btn-success" disabled="true" id="createRoomButton">CreateRoom</button>
         </form>
     </div>
-    <div id="navigation" class="col-md-4">
+    <div id="navigation" class="col-md-4 col-sm-12 col-xs-12">
         <div id="content">
             <h4 > Messages in your room <span class="glyphicon glyphicon-th-list"></span></h4>
             <ul id="messages"> </ul>
         </div>
     </div>
-    <div id="extra" class="col-md-4">
+    <div id="extra" class="col-md-4 col-sm-12 col-xs-12">
         <h4> Users online in your room <span class="glyphicon glyphicon-user"></span> </h4>
         <ul id="usersInRoom">
         </ul>
@@ -54,14 +54,16 @@
         <div id="inRoom" style="visibility: hidden">
             You are currently in room
             <label id="currentRoomName"></label>
-            <button id="leaveRoomButton" text="Leave room">Leave</button>
+            <button id="leaveRoomButton" class="btn btn-default" text="Leave room">Leave</button>
         </div>
     </div>
 </div>
 <div id="footer" class="row">
+        <div id="footerContent" col-sm-12>
         <h2 class="footer__text"> Users online in app <span class="glyphicon glyphicon-user"></span></h2>
         <ul id="allUsersInApp">
         </ul>
+        </div>
 </div>
 </div>
 
