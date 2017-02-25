@@ -75,7 +75,6 @@
 
 
     var disableUI = function(){
-        console.log("disableUI");
         document.getElementById('connectButton').disabled = true;
         document.getElementById('createRoomButton').disabled = false;
     };
@@ -86,14 +85,13 @@
     }
     $('#rooms').on('click', '.joinRoom', function(event) {
         room = event.target.textContent;
-        console.log(event.target.textContent);
         var object ={
             nick:nick,
             room:room
         };
         socket.emit('join room', JSON.stringify(object));
         $('#currentRoomName').html(room);
-         $('#rooms').css("visibility","hidden");
+        $('#rooms').css("visibility","hidden");
         $("#inRoom").css("visibility", "visible");
         document.getElementById('createRoomButton').disabled = true;
         document.getElementById('sendMessageButton').disabled = false;
@@ -102,7 +100,13 @@
     });
 
     $('#sendMessageButton').click(function(){
-        socket.emit('chat message',room + '#' + nick+ ": " +  $('#m').val());
+        var sendObject = {
+            roomName: room,
+            userName:nick,
+            message :  $('#m').val()
+        }
+
+        socket.emit('chat message',JSON.stringify(sendObject));
         $('#m').val('');
         disableUI();
         return false;
@@ -154,19 +158,15 @@
 
     socket.on('room messages', function(msg){
         if(listeForRoomMessages){
-            console.log("messages has come");
             var responseObject = JSON.parse(msg);
-
             $("#messages").empty();
             for(var i =0;i<responseObject.roomMessages.length; i++ ){
                 $('#messages').append($('<li>').text(responseObject.roomMessages[i]));
             }
-            console.log(responseObject.users);
             $("#usersInRoom").empty();
             for(var i =0;i<responseObject.users.length; i++ ){
                 $('#usersInRoom').append($('<li>').text(responseObject.users[i]));
             }
-
         }
         listeForRoomMessages=false;
     });
@@ -174,8 +174,8 @@
     socket.on('user connection', function(msg){
         $('#messages').append($('<li>').text("User was connected by nick name : "+ msg));
     });
+	
     socket.on('users in room', function(msg){
-        console.log("users in room emitted");
         $("#usersInRoom").empty();
         for(var i =0;i<msg.length; i++ ){
             $('#usersInRoom').append($('<li>').text(msg[i]));
