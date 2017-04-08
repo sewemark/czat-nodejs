@@ -5,6 +5,7 @@ var path = require('path');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var  rooms = new Array();
+var tempRooms = new Array();
 var Room = require('./models/room');
 var ClientContract = require('./models/clientcontract');
 var ServerContract = require('./models/servercontract');
@@ -18,6 +19,7 @@ rooms.push(room2);
 var applicationUsers = new Array();
 
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
@@ -27,7 +29,6 @@ app.get('/styles.css', function(req, res){
 });
 
 io.on(clientContract.CONNECTION, function(socket){
-
 
     socket.on(serverContract.BROADCAST_MESSAGES, function(msg){
         var requestObject =JSON.parse(msg);
@@ -66,6 +67,7 @@ io.on(clientContract.CONNECTION, function(socket){
             return item.name;
         }));
      });
+
     socket.on(clientContract.LEAVE_ROOM, function(msg){
         var objectMsg = JSON.parse(msg);
         var currentRoom = getCurrentRoom(objectMsg.room);
@@ -81,6 +83,7 @@ io.on(clientContract.CONNECTION, function(socket){
          io.sockets.in(objectMsg.room).emit(serverContract.BROADCAST_USERS, currentRoom.users);
 
     });
+
     function  getCurrentRoom(roomName){
         return rooms.filter(function(element){
             return element.name===roomName;
@@ -88,6 +91,7 @@ io.on(clientContract.CONNECTION, function(socket){
     }
 
 });
+
 http.listen(3000, function(){
     console.log('listening on *:3000');
 });
